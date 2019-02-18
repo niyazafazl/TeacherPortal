@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Govtech Assessment Project - Home Page</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="https://fonts.googleapis.com/css?family=Merriweather:300,400%7CPoppins:400,500,600" rel="stylesheet">
+		<link rel="stylesheet" href="/src/app/assets/lib/bootstrap/css/bootstrap.min.css">
+		<!-- Custom CSS -->
+    	<link href="/src/app/assets/css/main.css" rel="stylesheet" type="text/css">
+
+		<script src="/src/app/assets/lib/jquery/jquery.min.js"></script>
+
+		<!-- Bootstrap Core JavaScript -->
+		<script src="/src/app/assets/lib/bootstrap/js/bootstrap.min.js"></script>
+		<script>
+
+		// main function for handling form events
+		$(function() {
+			callTeacherList();
+			$("#formRegister").submit(function(event){
+				event.preventDefault();
+				callRegisterApi();
+			});
+			$("#listStudent").submit(function(event){
+				event.preventDefault();
+				callListStudentByTeacher();
+			});
+			$("#listMyStudent").submit(function(event) {
+				event.preventDefault();
+				callListMyStudent();
+			});
+		});
+		function callTeacherList() {
+			$.ajax({
+				url: "/api/teachers",
+				type: "GET", // post to serverside
+				success: function (data) {
+				console.log("data:"+JSON.stringify(data));
+				// successful response from serverside
+					if (data.code == 204) { // successful
+						// populate the teachers dropw down list
+						loadTeacherList(data.results);
+					} else {
+						// error occured
+						alert("ERROR IN PERSON DATA:"+JSON.stringify(data.msg));
+					}
+				}
+			});
+		}
+
+		/*
+		Function to register student
+		*/
+		function callRegisterApi() {
+		// invoke AJAX call from frontend clientside to your backend serverside
+			
+			var studentsArr = $("#studentCont :input");
+			var students= [];
+			studentsArr.each(function(e) {
+				var studentObj = {};
+				if(this.name.includes('student_email')) {
+					if(this.value){
+						//studentObj.student_name = this.value;
+						studentObj = {'student_email': this.value}
+					}
+				}
+				if(!$.isEmptyObject(studentObj)){
+					students.push(studentObj);
+				}
+			});
+			
+			var teacherId = $("#teacherList option:selected").attr("value");
+			var data = {"teacher_id": teacherId,
+				  		"students": students
+						};
+			var studentRegData = JSON.stringify(data);
+			$.ajax({
+                url: "/api/register",
+                type: "POST",
+                dataType: "json",
+                data: studentRegData,
+                contentType: "application/json",
+                cache: false,
+                timeout: 5000,
+                complete: function() {
+                  //called when complete
+                  console.log('process complete');
+                },
+
+                success: function(data) {
+                  console.log(data);
+                  console.log('process sucess');
+               },
+
+                error: function() {
+                  console.log('process error');
+                },
+              });
+		}
+
+		/*
+		Function to list students by teacher id
+		*/
+		function callListStudentByTeacher() {
+			var teacherselected = [];
+			$(".teachercb:checked").each(function(){
+			    teacherselected.push($(this).val());
+			});
+			
+			$.ajax({
+                url: "/api/studentListByTeacher",
+                type: "GET",
+                dataType: "json",
+                data: {
+                    'teachers': teacherselected
+                },
+                contentType: "application/json",
+                cache: false,
+                timeout: 5000,
+                complete: function() {
+                  //called when complete
+                  console.log('process complete');
+                },
+
+                success: function(studentData) {
+                  populateStudentList(studentData.data);
+                  console.log('student retrieved successfully');
+               },
+
+                error: function() {
+                  console.log('process error');
+                },
+            });
+		}
+
+		/*
+		Function to list my student
+		*/
+		function callListMyStudent() {
+			var urlPath = window.location.href;
+			var urlStr = urlPath.split("?");
+			var teacherEmail = urlStr[1];
+			teacherEmail= teacherEmail.replace("#", "");
+			$.ajax({
+                url: "/api/listMyStudent",
+                type: "GET",
+                dataType: "json",
+                data: {
+                    'teacher_email': teacherEmail
+                },
+                contentType: "application/json",
+                cache: false,
+                timeout: 5000,
+                complete: function() {
+                  //called when complete
+                  console.log('process complete');
+                },
+
+                success: function(studentData) {
+                  populateMyStudentList(studentData.data);
+                  console.log('retrieved my student successfully');
+               },
+
+                error: function() {
+                  console.log('process error');
+                },
+            });
+		}
+
+		/*
+		Function to suspend students
+		*/
+		function suspendStudent() {
+			var studentToSuspend= [];
+			$(".sudentcb:checked").each(function(){
+			    studentToSuspend.push($(this).val());
+			});
+			var suspendObj = {'status':'suspended',
+							'students': studentToSuspend};
+			var studentSuspendData = JSON.stringify(suspendObj);
+			$.ajax({
+                url: "/api/suspend",
+                type: "POST",
+                dataType: "json",
+                data: studentSuspendData,
+                contentType: "application/json",
+                cache: false,
+                timeout: 5000,
+                complete: function() {
+                  //called when complete
+                  console.log('process complete');
+                },
+
+                success: function(data) {
+                  console.log(data);
+                  console.log('student suspended successfully');
+               },
+
+                error: function(error) {
+                  console.log('process error', error);
+                },
+            });
+		}
+
+		/*
+		Function to Send notitfication to students
+		*/
+		function sendNotification() {
+			var studentsToRecieveNotification = [];
+			var urlPath = window.location.href;
+			var urlStr = urlPath.split("?");
+			var teacherEmail = urlStr[1];
+			teacherEmail= teacherEmail.replace("#", "");
+			$(".sudentcb:checked").each(function(){
+			    studentsToRecieveNotification.push($(this).val());
+			});
+			var notificationObj = {'teacher':teacherEmail,
+							'students': studentsToRecieveNotification,
+							'notification': $('[name=notification').val()
+							};
+			var notificationData = JSON.stringify(notificationObj);
+			$.ajax({
+                url: "/api/retrievefornotifications",
+                type: "POST",
+                dataType: "json",
+                data: notificationData,
+                contentType: "application/json",
+                cache: false,
+                timeout: 5000,
+                complete: function() {
+                  //called when complete
+                  console.log('process complete');
+                },
+
+                success: function(data) {
+                  console.log(data);
+                  console.log('student notification send successfully');
+                  alert('Successfully send Notifications');
+               },
+
+                error: function(error) {
+                  console.log('process error', error);
+                },
+            });
+		}
+
+		function loadTeacherList(teacherList){
+			console.log('teacherList', teacherList);
+			var teacherSelect = document.getElementById('teacherList');
+			if(teacherList && teacherList.length > 0) {
+				for(var i=0; i <teacherList.length; i++) {
+					teacherSelect.innerHTML += "<option value=\"" + teacherList[i].teacher_id + "\">" + teacherList[i].teacher_name + "</option>";
+					var checkbox="<input class='teachercb' type='checkbox' id="+teacherList[i].teacher_id+" value="+teacherList[i].teacher_id+" name="+teacherList[i].teacher_id+">"+teacherList[i].teacher_name +"<br>"
+					$(".checkBoxContainer").append($(checkbox));
+				}
+			}
+		}
+		/* Add student function */
+		var itemIndex = 1;
+		var max_fields = 10;
+		function addStudent() {
+			if(itemIndex < max_fields) {
+				itemIndex++;
+				var studentFields = "<label>Student Email: </label><input type='text' name='student_email"+itemIndex+"' placeholder='Enter Student Email' maxlength='150'><br>";
+				$('#studentCont').append($(studentFields));
+			}
+		}
+		/* Populate the student list for the particulat teacher */
+		function populateStudentList(studentData) {
+			console.log('studentData', studentData);
+			var html = '';
+			$("#sudentList").html("");
+			if(studentData && studentData.length > 0) {
+				$("#sudentList").append("<table id='studentTable'><tr><th align='center'>Student Email</th><th align='center'>Status</th></tr></table>")
+				
+				$.each(studentData, function(ind, val) {
+					console.log('studentObj', val);
+
+					html="<tr><td align='center'>"+val.student_email+"</td><td align='center'>"+val.status+"</td></tr>";
+					$("#studentTable tr:first").after($(html));
+				})
+			}
+		}
+
+		/* Populate my student list for the current logged in teacher */
+		function populateMyStudentList(studentData) {
+			console.log('studentData', studentData);
+			var html = '';
+			$("#studentListForAction").html("");
+			if(studentData && studentData.length > 0) {
+				$("#studentListForAction").append("<table id='myStudentTable'><tr><th></th><th align='center'>Student Email</th><th align='center'>Status</th></tr></table>")
+				
+				$.each(studentData, function(ind, val) {
+					console.log('studentObj', val);
+
+					html="<tr><td><input class='sudentcb' type='checkbox' id="+val.student_id+" value="+val.student_id+" name="+val.student_email+"></td><td align='center'>"+val.student_email+"</td><td align='center'>"+val.status+"</td></tr>";
+					$("#myStudentTable tr:first").after($(html));
+				})
+			}
+		}
+		</script>
+	</head>
+	<body>
+		<section class="hero-area">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-6 col-md-6 d-flex align-items-center full-screen-height">
+						<div class="hero-content-div">
+							<div class="hero-content">
+								<h1>Teacher Portal</h1>
+							</div>
+							<div class="hero-content">
+								 <!-- Registration form  -->
+								<form id="formRegister">
+									<div>
+									<div id="studentCont">
+										<!-- Student Name: <input type="text" name="student_name1" placeholder="Enter Student Name" maxlength="150"><br> -->
+										Student Email: <input type="text" name="student_email1" placeholder="Enter Student Email" maxlength="150"><br>
+									</div>
+									<input type="button" onclick="addStudent()" value="Add Student"/>
+									<br>
+									Teachers: <select id="teacherList"><br>
+									 
+									</select>
+								</div>
+									<a href="#" onclick="$(this).closest('form').submit()" class="btn2">Register Student</a>
+								</form>
+							</div>
+							<div class="hero-content">
+								<!-- Retrieve Students form -->
+								<form id="listStudent">
+									<div class="checkBoxContainer"></div>
+									
+									<a href="#" onclick="$(this).closest('form').submit()" class="btn2">Retrieve Students</a>
+								</form>
+								
+								<div id="sudentList"></div>
+							</div>
+							<div class="hero-content">
+								<!-- Student suspend and notification form -->
+								<form id="listMyStudent">
+									<a href="#" onclick="$(this).closest('form').submit()" class="btn2">Show My Students</a>
+								</form>
+								
+								<div id="studentListForAction"></div>
+								
+								<input type="button" onclick="suspendStudent()" value="Suspend Student"/>
+
+								<textarea name="notification" rows="4" cols="50"> </textarea>
+								<input type="button" onclick="sendNotification()" value="Send Notification"/>
+								
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+	</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Govtech Assessment Project - Login Page</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<link href="https://fonts.googleapis.com/css?family=Merriweather:300,400%7CPoppins:400,500,600" rel="stylesheet">
+		<link rel="stylesheet" href="/src/app/assets/lib/bootstrap/css/bootstrap.min.css">
+		<!-- Custom CSS -->
+    	<link href="/src/app/assets/css/main.css" rel="stylesheet" type="text/css">
+
+		<script src="/src/app/assets/lib/jquery/jquery.min.js"></script>
+
+		<!-- Bootstrap Core JavaScript -->
+		<script src="/src/app/assets/lib/bootstrap/js/bootstrap.min.js"></script>
+		<script>
+			$(function() {
+				$("#formLogin").submit(function(event){
+					event.preventDefault();
+					callLoginApi();
+				});
+			});
+			function callLoginApi() {
+				var teacherEmail = $('[name=teacher_email]').val();
+				var data = {'email': teacherEmail,
+					  		'password': $('[name=teacher_password]').val()
+							};
+				var loginData = JSON.stringify(data);
+				$.ajax({
+	                url: "/api/login",
+	                type: "POST",
+	                dataType: "json",
+	                data: loginData,
+	                contentType: "application/json",
+	                cache: false,
+	                timeout: 5000,
+	                complete: function() {
+	                  //called when complete
+	                  console.log('process complete');
+	                },
+
+	                success: function(data) {
+	                  console.log(data);
+	                  console.log('login sucess');
+	                  window.location.href = "/index.html?"+teacherEmail;
+	               	},
+
+	                error: function() {
+	                  console.log('process error');
+	                },
+	             });
+			}
+		</script>
+	</head>
+	<body>
+		<section class="hero-area">
+			<div class="container">
+				<div class="row">
+					<div class="hero-content-div">
+						<div class="hero-content">
+							<h1>Teacher Portal</h1>
+						</div>
+						<div class="hero-content">
+							<form id="formLogin">
+								Enter Email: <input type="text" name="teacher_email" placeholder="Enter Email" maxlength="150"><br>
+								Enter Password: <input type="text" name="teacher_password" placeholder="Enter password" maxlength="150"><br>
+								<a href="#" onclick="$(this).closest('form').submit()" class="btn2">Login</a>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</body>
+</html>
