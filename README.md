@@ -74,7 +74,3 @@ npm test
 ```
 
 ---
-
-## Reporting issues
-
-You may contact [niyazafazl@yahoo.com](mailto:niyazafazl@yahoo.com) for any issues in running.
