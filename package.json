@@ -6,6 +6,10 @@
     "test-init": "./node_modules/jasmine/bin/jasmine.js init",
     "test": "./node_modules/jasmine/bin/jasmine.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niyazafazl/TeacherPortal.git"
+  },
   "devDependencies": {
     "jasmine": "^3.3.1",
     "npm-run-all": "^4.0.2"
