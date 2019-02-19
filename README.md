@@ -66,33 +66,42 @@ User: root
 Password: password
 
 DB Schema:
-Table1 : teachers
+Table1 : `teachers`
+
+```
 column name  	type 
 -----------------------
 teacher_id		int   (PK)
 teacher_name	varchar
 teacher_email	varchar
 password 		varchar
+```
 ![Teachers table Screenshot](screenshot_teacher_table.png)
 
-Table2: students
+Table2: `students`
+
+```
 column name  	type 
 -----------------------
 student_id		int (PK)
 student_email	varchar
 teacher_id		int
 status 			varchar
+```
 ![Students table Screenshot](screenshot_student_table.png)
 
-Table3: notifications
+Table3: `notifications`
+
+```
 column name  	type 
 -----------------------
 id				int  (PK)
 teacher_email	varchar
 students		varchar
 message 		varchar
-
+```
 ![Notification table Screenshot](screenshot_notification_table.png)
+
 ---
 ### Unit Test
 Run the following command in the folder you unzipped the application:
